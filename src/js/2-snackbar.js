@@ -1,43 +1,35 @@
-const STORAGE_KEY = 'feedback-form-state';
+import iziToast from 'izitoast';
+import 'izitoast/dist/css/iziToast.min.css';
 
-const form = document.querySelector('.feedback-form');
-const emailInput = form.elements.email;
-const messageInput = form.elements.message;
+const form = document.querySelector('.form');
 
-let formData = { email: '', message: '' };
+form.addEventListener('submit', event => {
+  event.preventDefault();
 
-// On page load — restore from localStorage if data exists
-const savedData = localStorage.getItem(STORAGE_KEY);
+  const delay = Number(event.target.delay.value);
+  const state = event.target.state.value;
 
-if (savedData !== null) {
-  formData = JSON.parse(savedData);
-  emailInput.value = formData.email ?? '';
-  messageInput.value = formData.message ?? '';
-}
+  const promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (state === 'fulfilled') {
+        resolve(delay);
+      } else {
+        reject(delay);
+      }
+    }, delay);
+  });
 
-// Event delegation on the form for the 'input' event
-form.addEventListener('input', e => {
-  const { name, value } = e.target;
-
-  if (name === 'email' || name === 'message') {
-    formData[name] = value.trim();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-  }
-});
-
-// Submit handler
-form.addEventListener('submit', e => {
-  e.preventDefault();
-
-  if (!formData.email || !formData.message) {
-    alert('Fill please all fields');
-    return;
-  }
-
-  console.log(formData);
-
-  // Clear everything
-  localStorage.removeItem(STORAGE_KEY);
-  formData = { email: '', message: '' };
-  form.reset();
+  promise
+    .then(delay => {
+      iziToast.success({
+        message: `✅ Fulfilled promise in ${delay}ms`,
+        position: 'topRight',
+      });
+    })
+    .catch(delay => {
+      iziToast.error({
+        message: `❌ Rejected promise in ${delay}ms`,
+        position: 'topRight',
+      });
+    });
 });
